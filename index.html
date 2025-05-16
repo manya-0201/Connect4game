@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connect 4 Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a1e3d, #061229);
+      color: #eee;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+    h1 {
+      font-size: 3rem;
+      margin: 30px 0 10px;
+      text-shadow: 0 0 12px #00aaff, 0 0 25px #004f7a;
+    }
+    #controls {
+      margin: 12px 0;
+    }
+    #mode-select {
+      padding: 8px 16px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background-color: #0a2944;
+      color: #00aaff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0077cc inset;
+      transition: box-shadow 0.3s ease;
+    }
+    #mode-select:hover,
+    #mode-select:focus {
+      box-shadow: 0 0 18px #00c3ff inset;
+      outline: none;
+    }
+    #scoreboard {
+      margin: 12px 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-shadow: 0 0 8px #00aaff;
+    }
+    #status {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      text-shadow: 0 0 6px #00aaff;
+    }
+    #game-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      max-width: 1200px;
+      width: 90vw;
+    }
+    #left-sidebar,
+    #right-sidebar {
+      height: 480px;
+      width: 200px;
+      background: rgba(10, 30, 60, 0.7);
+      border-radius: 12px;
+      box-shadow: 0 0 20px #0077ccaa;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #aaddff;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      padding: 20px 16px;
+    }
+    #left-sidebar h3,
+    #right-sidebar h3 {
+      margin-bottom: 10px;
+      border-bottom: 2px solid #00aaff;
+      width: 100%;
+      padding-bottom: 6px;
+      font-weight: 700;
+      text-shadow: 0 0 5px #00aaffbb;
+    }
+    #left-sidebar ul {
+      list-style: square;
+      padding-left: 1.2em;
+      text-align: left;
+      margin: 0;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      width: 90vmin;
+      height: calc(90vmin * 6 / 7);
+      background-color: #001630;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 0 30px #0099ffaa inset;
+      cursor: pointer;
+    }
+    .cell {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #444a6d, #1c2245);
+      box-shadow: inset 0 0 6px #000a2a;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+    .cell:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 12px #00aaffcc, inset 0 0 10px #004080;
+    }
+    .X {
+      background: radial-gradient(circle at center, #ff4d4d, #c10000);
+      box-shadow: 0 0 14px #ff4444, inset 0 0 10px #a80000;
+      animation: dropDisc 0.3s ease-out;
+    }
+    .O {
+      background: radial-gradient(circle at center, #ffff66, #ffcc00);
+      box-shadow: 0 0 14px #ffec42, inset 0 0 10px #b38f00;
+      animation: dropDisc 0.3s ease-out;
+    }
+    @keyframes dropDisc {
+      from {
+        transform: translateY(-100vh);
+        opacity: 0.3;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    button {
+      margin: 8px;
+      padding: 12px 28px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0077cc, #004f7a);
+      color: #aaddff;
+      font-weight: 700;
+      box-shadow: 0 0 8px #0099ff, inset 0 0 12px #00ccff;
+      transition: box-shadow 0.3s ease, background 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #0099ff, #006699);
+      box-shadow: 0 0 14px #00ccff, inset 0 0 20px #00eeff;
+    }
+
+    @media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  #game-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  #left-sidebar, #right-sidebar {
+    width: 90%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  #board {
+    width: 95vw;
+    height: auto;
+    aspect-ratio: 7 / 6;
+  }
+
+  #controls select, button {
+    font-size: 1rem;
+    padding: 10px 20px;
+  }
+
+  #status, #scoreboard {
+    font-size: 1rem;
+  }
+
+  #ohno-overlay span {
+    font-size: 3rem;
+    text-align: center;
+    padding: 0 20px;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+  <h1>Connect 4</h1>
+
+  <div id="controls">
+    <select id="mode-select" aria-label="Choose game mode">
+      <option value="2player">2 Player</option>
+      <option value="computer">Vs Computer</option>
+    </select>
+  </div>
+
+  <div id="scoreboard" aria-live="polite">
+    Score — Player X: <span id="scoreX">0</span> | Player O: <span id="scoreO">0</span>
+  </div>
+
+  <div id="status" aria-live="polite">Choose a mode to start</div>
+
+  <div id="game-container">
+    <aside id="left-sidebar" role="complementary" aria-label="Game instructions">
+      <h3>How to Play</h3>
+      <ul>
+        <li>Click a column to drop your disc</li>
+        <li>Connect 4 discs in a row to win</li>
+        <li>Play against a friend or the AI</li>
+      </ul>
+    </aside>
+
+    <div id="board" role="grid" aria-label="Connect 4 board"></div>
+
+    <aside id="right-sidebar" role="complementary" aria-label="Player info">
+      <h3>Players</h3>
+      <p><strong>X</strong> = 🔴 Red</p>
+      <p><strong>O</strong> = 🟡 Yellow</p>
+      <p>Good luck!</p>
+    </aside>
+  </div>
+
+  <div>
+    <button id="reset-btn" aria-label="Reset game">Reset Game</button>
+    <button id="reset-scores-btn" aria-label="Reset scores">Reset Scores</button>
+  </div>
+
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    const rows = 6;
+    const cols = 7;
+    let board = [];
+    let currentPlayer = "X";
+    let gameMode = "2player";
+    let gameActive = true;
+    let scores = { X: 0, O: 0 };
+
+    const statusDiv = document.getElementById("status");
+    const boardElement = document.getElementById("board");
+    const modeSelect = document.getElementById("mode-select");
+    const scoreXSpan = document.getElementById("scoreX");
+    const scoreOSpan = document.getElementById("scoreO");
+
+    function initGame() {
+      board = Array.from({ length: rows }, () => Array(cols).fill(null));
+      currentPlayer = "X";
+      gameActive = true;
+      statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+      createBoard();
+    }
+
+    function createBoard() {
+      boardElement.innerHTML = "";
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.setAttribute("role", "gridcell");
+          cell.addEventListener("click", handleMove);
+          boardElement.appendChild(cell);
+        }
+      }
+    }
+
+    function handleMove(event) {
+      if (!gameActive) return;
+
+      const col = parseInt(event.target.dataset.col);
+      if (makeMove(col, currentPlayer)) {
+        if (checkWin()) {
+          statusDiv.textContent = `Player ${currentPlayer} wins!`;
+          updateScore(currentPlayer);
+          gameActive = false;
+          triggerConfetti();
+          return;
+        }
+        if (checkDraw()) {
+          statusDiv.textContent = "It's a draw!";
+          gameActive = false;
+          return;
+        }
+
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+
+        if (gameMode === "computer" && currentPlayer === "O" && gameActive) {
+          setTimeout(() => {
+            const aiCol = getBestMove("O");
+            makeMove(aiCol, "O");
+
+            if (checkWin()) {
+              statusDiv.textContent = `Player O (Computer) wins!`;
+              updateScore("O");
+              gameActive = false;
+              triggerConfetti();
+              return;
+            }
+            if (checkDraw()) {
+              statusDiv.textContent = "It's a draw!";
+              gameActive = false;
+              return;
+            }
+
+            currentPlayer = "X";
+            statusDiv.textContent = `Player ${currentPlayer}'s turn`;
+          }, 400);
+        }
+      }
+    }
+
+    function makeMove(col, player) {
+      for (let r = rows - 1; r >= 0; r--) {
+        if (!board[r][col]) {
+          board[r][col] = player;
+          const cell = document.querySelector(`[data-row='${r}'][data-col='${col}']`);
+          cell.classList.add(player);
+          cell.removeEventListener("click", handleMove);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function checkDraw() {
+      return board[0].every(cell => cell !== null);
+    }
+
+    function checkWin() {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (
+            checkDirection(r, c, 1, 0) ||
+            checkDirection(r, c, 0, 1) ||
+            checkDirection(r, c, 1, 1) ||
+            checkDirection(r, c, 1, -1)
+          ) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function checkDirection(r, c, dr, dc) {
+      const player = board[r][c];
+      if (!player) return false;
+      for (let i = 1; i < 4; i++) {
+        const nr = r + dr * i;
+        const nc = c + dc * i;
+        if (
+          nr < 0 || nr >= rows ||
+          nc < 0 || nc >= cols ||
+          board[nr][nc] !== player
+        ) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function getAvailableRow(col) {
+      for (let r = rows - 1; r >= 0; r--) {
+        if (!board[r][col]) return r;
+      }
+      return -1;
+    }
+
+    function getBestMove(aiPlayer) {
+      const humanPlayer = aiPlayer === "O" ? "X" : "O";
+
+      for (let c = 0; c < cols; c++) {
+        if (!board[0][c]) {
+          let r = getAvailableRow(c);
+          board[r][c] = aiPlayer;
+          if (checkWin()) {
+            board[r][c] = null;
+            return c;
+          }
+          board[r][c] = null;
+        }
+      }
+
+      for (let c = 0; c < cols; c++) {
+        if (!board[0][c]) {
+          let r = getAvailableRow(c);
+          board[r][c] = humanPlayer;
+          if (checkWin()) {
+            board[r][c] = null;
+            return c;
+          }
+          board[r][c] = null;
+        }
+      }
+
+      if (!board[0][Math.floor(cols / 2)]) {
+        return Math.floor(cols / 2);
+      }
+
+      const validCols = [];
+      for (let c = 0; c < cols; c++) {
+        if (!board[0][c]) validCols.push(c);
+      }
+      validCols.sort(
+        (a, b) =>
+          Math.abs(Math.floor(cols / 2) - a) -
+          Math.abs(Math.floor(cols / 2) - b)
+      );
+      return validCols[0];
+    }
+
+    function updateScore(player) {
+      scores[player]++;
+      scoreXSpan.textContent = scores["X"];
+      scoreOSpan.textContent = scores["O"];
+    }
+
+    function triggerConfetti() {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
+
+    document.getElementById("reset-btn").addEventListener("click", initGame);
+    document.getElementById("reset-scores-btn").addEventListener("click", () => {
+      scores = { X: 0, O: 0 };
+      scoreXSpan.textContent = "0";
+      scoreOSpan.textContent = "0";
+      initGame();
+    });
+    modeSelect.addEventListener("change", (e) => {
+      gameMode = e.target.value;
+      initGame();
+    });
+
+    initGame();
+  </script>
+</body>
+</html>
